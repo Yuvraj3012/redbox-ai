@@ -160,7 +160,10 @@ export async function GET(req) {
   const rawTarget = urlObj.searchParams.get('target') || '';
   const target = normalizeTarget(rawTarget);
 
-  const isDemo   = target === 'demo' || target.includes('demo-startup-vulnapp');
+  const isDemo =
+    target === 'demo' ||
+    target === 'demo-startup-vulnapp' ||
+    target.includes('demo-startup-vulnapp');
   const isGitHub = !isDemo && target.includes('github.com');
 
   const encoder = new TextEncoder();
@@ -232,9 +235,13 @@ export async function GET(req) {
           } catch { send('[Ghost] Storage skipped — continuing'); }
 
           const score = reconData.riskScore;
-          if (score >= 50)      send('SYSTEM COMPROMISED');
-          else if (score >= 25) send('VULNERABILITIES DETECTED');
-          else                  send('SCAN COMPLETE — LOW RISK');
+          if (score < 30) {
+            send('✓ LOW RISK — Site appears well secured');
+          } else if (score <= 60) {
+            send('⚠ MEDIUM RISK — Issues detected');
+          } else {
+            send('⚠ SYSTEM COMPROMISED');
+          }
 
           sendResult(buildPayload(target, reconData, attackData));
           controller.close();
@@ -310,9 +317,13 @@ export async function GET(req) {
         send('[InsForge] Agent workflow complete');
 
         const score = reconData.riskScore;
-        if (score >= 50)      send('SYSTEM COMPROMISED');
-        else if (score >= 25) send('VULNERABILITIES DETECTED');
-        else                  send('SCAN COMPLETE — LOW RISK DETECTED');
+        if (score < 30) {
+          send('✓ LOW RISK — Site appears well secured');
+        } else if (score <= 60) {
+          send('⚠ MEDIUM RISK — Issues detected');
+        } else {
+          send('⚠ SYSTEM COMPROMISED');
+        }
 
         sendResult(buildPayload(target, reconData, attackData));
         controller.close();
@@ -344,7 +355,10 @@ export async function POST(req) {
     const target = normalizeTarget(body.target);
     if (!target) return NextResponse.json({ error: 'target required' }, { status: 400 });
 
-    const isDemo   = target === 'demo' || target.includes('demo-startup-vulnapp');
+    const isDemo =
+      target === 'demo' ||
+      target === 'demo-startup-vulnapp' ||
+      target.includes('demo-startup-vulnapp');
     const isGitHub = !isDemo && target.includes('github.com');
 
     if (isDemo) return NextResponse.json(DEMO_RESULT);

@@ -1,493 +1,389 @@
 'use client';
-import { useState } from 'react';
+
 import Link from 'next/link';
+import { useEffect, useMemo, useState } from 'react';
 
-// ─── Reusable terminal output box ─────────────────────────────────────────────
-function Terminal({ lines, visible }) {
-  if (!visible || lines.length === 0) return null;
+const tabs = [
+  'SQL Injection',
+  'XSS Attack',
+  'Auth Bypass',
+  'Ransomware',
+  'Verify Your Domain',
+];
+
+function Section({ children }) {
   return (
-    <div style={{
-      background: '#000',
-      border: '1px solid #333',
-      borderRadius: '8px',
-      padding: '12px 16px',
-      fontFamily: 'monospace',
-      fontSize: '13px',
-      marginTop: '12px',
-    }}>
-      {lines.map((line, i) => (
-        <div key={i} style={{ color: line.color || '#a3e635', marginBottom: '4px' }}>
-          {line.text}
-        </div>
-      ))}
+    <div style={{ background: '#0f0f1a', border: '1px solid #1f1f34', borderRadius: '12px', padding: '18px' }}>
+      {children}
     </div>
   );
 }
 
-// ─── SQL Injection Demo ───────────────────────────────────────────────────────
-function SQLInjectionDemo() {
-  const [query, setQuery] = useState("' OR '1'='1");
-  const [output, setOutput] = useState([]);
-  const [ran, setRan] = useState(false);
-
-  async function execute() {
-    setRan(false);
-    setOutput([]);
-    await new Promise(r => setTimeout(r, 300));
-    setOutput([
-      { text: `> SELECT * FROM users WHERE name = '${query}'`, color: '#e5e5e5' },
-      { text: '> RESULT: Returned ALL 148,000 user records', color: '#ef4444' },
-      { text: '> BREACH: Complete database dump in 0.3 seconds', color: '#ef4444' },
-      { text: '────────────────────────────────────────', color: '#333' },
-      { text: '| admin@acmecorp.com    | admin | $2B revenue data      |', color: '#fbbf24' },
-      { text: '| ceo@acmecorp.com      | admin | Board meeting notes   |', color: '#fbbf24' },
-      { text: '| cto@acmecorp.com      | admin | AWS infrastructure    |', color: '#fbbf24' },
-      { text: '| 148,000 more rows...  |       |                       |', color: '#6b7280' },
-      { text: '────────────────────────────────────────', color: '#333' },
-      { text: '> IMPACT: Full database exfiltration in a single request.', color: '#ef4444' },
-    ]);
-    setRan(true);
-  }
-
+function FixCard({ text }) {
   return (
-    <div style={{ background: '#0f0f1a', border: '1px solid #1e1e3a', borderRadius: '12px', padding: '20px' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-        <h2 style={{ color: '#fff', fontSize: '16px', fontWeight: '700', margin: 0 }}>
-          💉 SQL Injection Demo
-        </h2>
-        <span style={{ background: '#1a1a2e', color: '#22c55e', fontSize: '10px', padding: '3px 10px', borderRadius: '20px', letterSpacing: '1px' }}>
-          SAFE DEMO ONLY
-        </span>
-      </div>
-      <p style={{ color: '#6b7280', fontSize: '12px', marginBottom: '12px' }}>
-        Real-world impact: Attacker dumps your entire user database in one HTTP request.
-      </p>
-      <div style={{ display: 'flex', gap: '8px' }}>
-        <input
-          value={query}
-          onChange={e => setQuery(e.target.value)}
-          style={{
-            flex: 1,
-            background: '#1a1a2e',
-            border: '1px solid #333',
-            borderRadius: '6px',
-            padding: '10px 14px',
-            color: '#fbbf24',
-            fontFamily: 'monospace',
-            fontSize: '13px',
-          }}
-          placeholder="Search users..."
-        />
-        <button
-          onClick={execute}
-          style={{
-            background: '#ef4444',
-            color: '#fff',
-            border: 'none',
-            borderRadius: '6px',
-            padding: '10px 18px',
-            fontWeight: '700',
-            cursor: 'pointer',
-          }}
-        >
-          Execute Query
-        </button>
-        {ran && (
-          <button
-            onClick={() => { setOutput([]); setRan(false); }}
-            style={{ background: 'transparent', color: '#6b7280', border: '1px solid #333', borderRadius: '6px', padding: '10px 14px', cursor: 'pointer' }}
-          >
-            Reset
-          </button>
-        )}
-      </div>
-      <Terminal lines={output} visible={ran} />
+    <div style={{ marginTop: '14px', background: '#062a18', border: '1px solid #166534', borderRadius: '8px', padding: '10px 12px', color: '#86efac', fontSize: '12px' }}>
+      <strong>How to fix this:</strong> {text}
     </div>
   );
 }
 
-// ─── XSS Demo ─────────────────────────────────────────────────────────────────
-function XSSDemo() {
-  const [payload, setPayload] = useState("<script>alert(document.cookie)</script>");
-  const [output, setOutput] = useState([]);
-  const [ran, setRan] = useState(false);
-
-  async function submit() {
-    setRan(false);
-    setOutput([]);
-    await new Promise(r => setTimeout(r, 300));
-    setOutput([
-      { text: '> XSS PAYLOAD STORED IN DATABASE', color: '#ef4444' },
-      { text: `> Payload: ${payload}`, color: '#fbbf24' },
-      { text: '> EXECUTES ON EVERY USER WHO VIEWS THIS PAGE', color: '#ef4444' },
-      { text: '> Cookie stolen: session=eyJhbGciOiJub25lIn0.eyJ1c2VyIjoiYWRtaW4ifQ.. (admin session)', color: '#fbbf24' },
-      { text: '> Attacker now has persistent access to admin account', color: '#ef4444' },
-      { text: '> All future visitors are also compromised', color: '#ef4444' },
-      { text: '> IMPACT: Stored XSS — one injection poisons all users perpetually.', color: '#ef4444' },
-    ]);
-    setRan(true);
-  }
-
-  return (
-    <div style={{ background: '#0f0f1a', border: '1px solid #1e1e3a', borderRadius: '12px', padding: '20px' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-        <h2 style={{ color: '#fff', fontSize: '16px', fontWeight: '700', margin: 0 }}>
-          🎯 XSS (Cross-Site Scripting) Demo
-        </h2>
-        <span style={{ background: '#1a1a2e', color: '#22c55e', fontSize: '10px', padding: '3px 10px', borderRadius: '20px', letterSpacing: '1px' }}>
-          SAFE DEMO ONLY
-        </span>
-      </div>
-      <p style={{ color: '#6b7280', fontSize: '12px', marginBottom: '12px' }}>
-        Real-world impact: Your comment box becomes a persistent attack vector against all users.
-      </p>
-      <div style={{ display: 'flex', gap: '8px' }}>
-        <input
-          value={payload}
-          onChange={e => setPayload(e.target.value)}
-          style={{
-            flex: 1,
-            background: '#1a1a2e',
-            border: '1px solid #333',
-            borderRadius: '6px',
-            padding: '10px 14px',
-            color: '#f97316',
-            fontFamily: 'monospace',
-            fontSize: '13px',
-          }}
-          placeholder="Comment box..."
-        />
-        <button
-          onClick={submit}
-          style={{
-            background: '#f97316',
-            color: '#fff',
-            border: 'none',
-            borderRadius: '6px',
-            padding: '10px 18px',
-            fontWeight: '700',
-            cursor: 'pointer',
-          }}
-        >
-          Submit Comment
-        </button>
-        {ran && (
-          <button
-            onClick={() => { setOutput([]); setRan(false); }}
-            style={{ background: 'transparent', color: '#6b7280', border: '1px solid #333', borderRadius: '6px', padding: '10px 14px', cursor: 'pointer' }}
-          >
-            Reset
-          </button>
-        )}
-      </div>
-      <Terminal lines={output} visible={ran} />
-    </div>
-  );
-}
-
-// ─── Auth Bypass Demo ─────────────────────────────────────────────────────────
-function AuthBypassDemo() {
-  const [username, setUsername] = useState('admin');
-  const [password, setPassword] = useState('');
-  const [output, setOutput] = useState([]);
-  const [ran, setRan] = useState(false);
-
-  async function login() {
-    setRan(false);
-    setOutput([]);
-    await new Promise(r => setTimeout(r, 400));
-    setOutput([
-      { text: `> POST /api/auth/login  username=${username}  password="${password || '(empty)'}"`, color: '#e5e5e5' },
-      { text: '> AUTHENTICATION BYPASSED', color: '#ef4444' },
-      { text: '> Empty password accepted — no server-side validation', color: '#ef4444' },
-      { text: '> JWT token issued: eyJhbGciOiJub25lIn0.eyJ1c2VyIjoiYWRtaW4iLCJyb2xlIjoiYWRtaW4ifQ..', color: '#fbbf24' },
-      { text: '> Algorithm: none (JWT vulnerability — signature skipped)', color: '#ef4444' },
-      { text: '> Access level: ADMINISTRATOR', color: '#ef4444' },
-      { text: '────────────────────────────────────────', color: '#333' },
-      { text: '> ADMIN PANEL UNLOCKED', color: '#ef4444' },
-      { text: '> Total users in database: 148,000', color: '#fbbf24' },
-      { text: '> Revenue records: $2,300,000,000', color: '#fbbf24' },
-      { text: '> Employee SSNs: visible', color: '#fbbf24' },
-      { text: '────────────────────────────────────────', color: '#333' },
-    ]);
-    setRan(true);
-  }
-
-  return (
-    <div style={{ background: '#0f0f1a', border: '1px solid #1e1e3a', borderRadius: '12px', padding: '20px' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-        <h2 style={{ color: '#fff', fontSize: '16px', fontWeight: '700', margin: 0 }}>
-          🔓 Authentication Bypass Demo
-        </h2>
-        <span style={{ background: '#1a1a2e', color: '#22c55e', fontSize: '10px', padding: '3px 10px', borderRadius: '20px', letterSpacing: '1px' }}>
-          SAFE DEMO ONLY
-        </span>
-      </div>
-      <p style={{ color: '#6b7280', fontSize: '12px', marginBottom: '12px' }}>
-        Real-world impact: Empty password + JWT alg:none gives full admin access instantly.
-      </p>
-      <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
-        <input
-          value={username}
-          onChange={e => setUsername(e.target.value)}
-          style={{
-            flex: 1,
-            background: '#1a1a2e',
-            border: '1px solid #333',
-            borderRadius: '6px',
-            padding: '10px 14px',
-            color: '#fff',
-            fontSize: '13px',
-          }}
-          placeholder="Username"
-        />
-        <input
-          value={password}
-          onChange={e => setPassword(e.target.value)}
-          style={{
-            flex: 1,
-            background: '#1a1a2e',
-            border: '1px solid #333',
-            borderRadius: '6px',
-            padding: '10px 14px',
-            color: '#fff',
-            fontSize: '13px',
-          }}
-          placeholder="Password (leave empty)"
-        />
-        <button
-          onClick={login}
-          style={{
-            background: '#7c3aed',
-            color: '#fff',
-            border: 'none',
-            borderRadius: '6px',
-            padding: '10px 18px',
-            fontWeight: '700',
-            cursor: 'pointer',
-          }}
-        >
-          Login
-        </button>
-        {ran && (
-          <button
-            onClick={() => { setOutput([]); setRan(false); }}
-            style={{ background: 'transparent', color: '#6b7280', border: '1px solid #333', borderRadius: '6px', padding: '10px 14px', cursor: 'pointer' }}
-          >
-            Reset
-          </button>
-        )}
-      </div>
-      <Terminal lines={output} visible={ran} />
-    </div>
-  );
-}
-
-// ─── Ransomware Simulation ─────────────────────────────────────────────────────
-function RansomwareDemo() {
-  const [active, setActive] = useState(false);
-  const [decrypted, setDecrypted] = useState(false);
-
-  async function simulate() {
-    setDecrypted(false);
-    setActive(false);
-    await new Promise(r => setTimeout(r, 200));
-    setActive(true);
-  }
-
-  function decrypt() {
-    setActive(false);
-    setDecrypted(true);
-  }
-
-  return (
-    <div style={{ background: '#0f0f1a', border: '1px solid #1e1e3a', borderRadius: '12px', padding: '20px', position: 'relative' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-        <h2 style={{ color: '#fff', fontSize: '16px', fontWeight: '700', margin: 0 }}>
-          🔒 Ransomware Simulation
-        </h2>
-        <span style={{ background: '#1a1a2e', color: '#22c55e', fontSize: '10px', padding: '3px 10px', borderRadius: '20px', letterSpacing: '1px' }}>
-          SAFE DEMO ONLY
-        </span>
-      </div>
-      <p style={{ color: '#6b7280', fontSize: '12px', marginBottom: '16px' }}>
-        Real-world impact: All files encrypted in minutes. Business operations halted.
-      </p>
-
-      {/* "Files" that get blurred */}
-      <div style={{ filter: active ? 'blur(6px)' : 'none', transition: 'filter 0.3s', marginBottom: '16px' }}>
-        <div style={{ background: '#1a1a2e', borderRadius: '8px', padding: '12px', fontFamily: 'monospace', fontSize: '12px' }}>
-          <div style={{ color: '#22c55e', marginBottom: '4px' }}>📁 /data/users.db  (148,000 records)</div>
-          <div style={{ color: '#22c55e', marginBottom: '4px' }}>📁 /data/revenue.xlsx  ($2.3B data)</div>
-          <div style={{ color: '#22c55e', marginBottom: '4px' }}>📁 /backups/secrets.bak  (credentials)</div>
-          <div style={{ color: '#22c55e', marginBottom: '4px' }}>📁 /config/production.env  (AWS keys)</div>
-          <div style={{ color: '#22c55e' }}>📁 /logs/audit_2024.log  (50GB)</div>
-        </div>
-      </div>
-
-      <div style={{ display: 'flex', gap: '8px' }}>
-        {!active && (
-          <button
-            onClick={simulate}
-            style={{
-              background: '#991b1b',
-              color: '#fff',
-              border: 'none',
-              borderRadius: '6px',
-              padding: '10px 20px',
-              fontWeight: '700',
-              cursor: 'pointer',
-            }}
-          >
-            Simulate Ransomware Attack
-          </button>
-        )}
-        {decrypted && (
-          <button
-            onClick={() => setDecrypted(false)}
-            style={{ background: 'transparent', color: '#6b7280', border: '1px solid #333', borderRadius: '6px', padding: '10px 14px', cursor: 'pointer' }}
-          >
-            Reset
-          </button>
-        )}
-      </div>
-
-      {decrypted && (
-        <div style={{ marginTop: '12px', background: '#052e16', border: '1px solid #166534', borderRadius: '8px', padding: '12px', fontFamily: 'monospace', fontSize: '12px', color: '#22c55e' }}>
-          ✓ Demo decryption complete — all files restored (simulation only)
-        </div>
-      )}
-
-      {/* Ransom overlay */}
-      {active && (
-        <div style={{
-          position: 'absolute',
-          inset: 0,
-          background: 'rgba(0,0,0,0.93)',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          borderRadius: '12px',
-          zIndex: 10,
-          padding: '20px',
-          textAlign: 'center',
-        }}>
-          <div style={{ fontSize: '40px', marginBottom: '8px' }}>🔒</div>
-          <div style={{ fontSize: '24px', fontWeight: '900', color: '#ef4444', marginBottom: '8px', letterSpacing: '2px' }}>
-            ALL FILES ENCRYPTED
-          </div>
-          <div style={{ color: '#9ca3af', fontSize: '13px', marginBottom: '16px', lineHeight: 1.6 }}>
-            148,000 user records encrypted with AES-256<br />
-            Ransom demand: $450,000 in Bitcoin<br />
-            Time to decrypt without key: 3 million years
-          </div>
-          <div style={{ background: '#1a1a2e', border: '1px solid #333', borderRadius: '8px', padding: '10px 20px', marginBottom: '16px', fontFamily: 'monospace', fontSize: '12px', color: '#fbbf24' }}>
-            BTC: bc1q9r3k4m5p6q7s8t9u0v1w2x3y4z5a6b7c8d9e
-          </div>
-          <button
-            onClick={decrypt}
-            style={{
-              background: '#22c55e',
-              color: '#000',
-              border: 'none',
-              borderRadius: '6px',
-              padding: '10px 24px',
-              fontWeight: '700',
-              cursor: 'pointer',
-              fontSize: '14px',
-            }}
-          >
-            DECRYPT (Demo)
-          </button>
-        </div>
-      )}
-    </div>
-  );
-}
-
-// ─── Page ─────────────────────────────────────────────────────────────────────
 export default function SandboxPage() {
+  const [activeTab, setActiveTab] = useState('SQL Injection');
+
+  const [sqlUser, setSqlUser] = useState('admin');
+  const [sqlPass, setSqlPass] = useState("' OR '1'='1");
+  const [sqlLines, setSqlLines] = useState([]);
+
+  const [xssPayload, setXssPayload] = useState('<script>alert(document.cookie)</script>');
+  const [xssLines, setXssLines] = useState([]);
+  const [xssAlert, setXssAlert] = useState(false);
+
+  const [authUser, setAuthUser] = useState('admin');
+  const [authPass, setAuthPass] = useState('');
+  const [jwtAlg, setJwtAlg] = useState('HS256');
+  const [authLines, setAuthLines] = useState([]);
+
+  const [encryptedPaths, setEncryptedPaths] = useState([]);
+  const [ransomProgress, setRansomProgress] = useState(0);
+  const [ransomRunning, setRansomRunning] = useState(false);
+  const [ransomDone, setRansomDone] = useState(false);
+
+  const [verifyDomain, setVerifyDomain] = useState('');
+  const [dnsToken, setDnsToken] = useState('');
+  const [verified, setVerified] = useState(false);
+  const [verifyLogs, setVerifyLogs] = useState([]);
+
+  const files = useMemo(() => [
+    '/user-data (148,000 records)',
+    '/financial (Q4 revenue data)',
+    '/credentials (employee passwords)',
+  ], []);
+
+  useEffect(() => {
+    if (!ransomRunning) return;
+
+    let index = 0;
+    setEncryptedPaths([]);
+    const lockTimer = setInterval(() => {
+      if (index >= files.length) {
+        clearInterval(lockTimer);
+        return;
+      }
+      setEncryptedPaths((prev) => [...prev, files[index]]);
+      index += 1;
+    }, 400);
+
+    let pct = 0;
+    const progTimer = setInterval(() => {
+      pct += 10;
+      setRansomProgress(Math.min(pct, 100));
+      if (pct >= 100) {
+        clearInterval(progTimer);
+        setRansomRunning(false);
+        setRansomDone(true);
+      }
+    }, 220);
+
+    return () => {
+      clearInterval(lockTimer);
+      clearInterval(progTimer);
+    };
+  }, [ransomRunning, files]);
+
+  const runSqlDemo = () => {
+    setSqlLines([
+      `> Executing: SELECT * FROM users WHERE username='${sqlUser}' AND password='${sqlPass}'`,
+      '> RESULT: Query bypassed!',
+      '> Returned: ALL 148,000 user records',
+      '> Admin access: GRANTED',
+      '> Time to exploit: 0.3 seconds',
+    ]);
+  };
+
+  const runXssDemo = () => {
+    setXssLines([
+      '> XSS payload stored in database',
+      '> Executes when ANY user views this page',
+      '> Cookie stolen: session=eyJhbGci... (admin)',
+      '> Result: Attacker has persistent admin access',
+      `> Payload: ${xssPayload}`,
+    ]);
+    setXssAlert(true);
+  };
+
+  const runAuthDemo = () => {
+    const usingNone = jwtAlg === 'none';
+    setAuthLines([
+      `> Username: ${authUser}`,
+      `> Password: ${authPass || '(empty)'}`,
+      usingNone ? '> Empty password accepted' : '> Weak server-side validation detected',
+      '> No validation on server',
+      '> JWT issued: eyJhbGciOiJub25lIn0.eyJ1c2VyIjoiYWRtaW4ifQ.',
+      `> Algorithm: ${jwtAlg} ${usingNone ? '— signature ignored' : '(toggle to none to show bypass)'}`,
+      '> Access level: ADMINISTRATOR',
+    ]);
+  };
+
+  const startRansomDemo = () => {
+    setRansomProgress(0);
+    setRansomDone(false);
+    setRansomRunning(true);
+  };
+
+  const decryptDemo = () => {
+    setRansomRunning(false);
+    setRansomDone(false);
+    setRansomProgress(0);
+    setEncryptedPaths([]);
+  };
+
+  const generateDnsToken = () => {
+    const domainLabel = verifyDomain || 'yourdomain.com';
+    const token = `redbox-verify-${Math.random().toString(16).slice(2, 14)}`;
+    setDnsToken(`_redbox-verify.${domainLabel} → ${token}`);
+    setVerifyLogs((prev) => [...prev.slice(-6), `DNS token generated for ${domainLabel}`]);
+  };
+
+  const markVerified = (method) => {
+    setVerified(true);
+    setVerifyLogs((prev) => [...prev.slice(-6), `✓ Verified via ${method}`]);
+  };
+
+  const runFullSandboxTest = () => {
+    setVerifyLogs((prev) => [
+      ...prev.slice(-5),
+      'Running full sandbox test against localhost vulnerable endpoints...',
+      '→ /api/vulnerable/nosql',
+      '→ /api/vulnerable/cmdinject',
+      '→ /api/vulnerable/idor',
+      '✓ Sandbox simulation completed safely',
+    ]);
+  };
+
+  const terminalStyle = {
+    marginTop: '12px',
+    background: '#06080f',
+    border: '1px solid #1a1a2e',
+    borderRadius: '8px',
+    padding: '10px',
+    fontFamily: 'monospace',
+    fontSize: '12px',
+    color: '#d4d4d8',
+    lineHeight: '1.7',
+  };
+
   return (
-    <main style={{ minHeight: '100vh', background: '#0B0B0B', color: '#fff', padding: '32px 20px' }}>
-      <div style={{ maxWidth: '860px', margin: '0 auto' }}>
-        {/* Header */}
-        <div style={{ marginBottom: '32px' }}>
-          <Link href="/" style={{ color: '#6b7280', fontSize: '13px', textDecoration: 'none' }}>
-            ← Back to Dashboard
-          </Link>
-          <h1 style={{ fontSize: '32px', fontWeight: '900', marginTop: '12px', marginBottom: '4px' }}>
-            🧪 RedBox Sandbox — Safe Attack Lab
-          </h1>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <span style={{ color: '#22c55e', fontSize: '13px' }}>
-              ● Intentionally vulnerable demo environment
-            </span>
-            <span style={{ color: '#4b5563', fontSize: '13px' }}>
-              All attacks contained. No real systems harmed.
-            </span>
-          </div>
+    <main style={{ minHeight: '100vh', background: '#0B0B0B', color: '#fff', padding: '28px 16px 40px' }}>
+      <div style={{ maxWidth: '980px', margin: '0 auto' }}>
+        <Link href="/" style={{ color: '#9ca3af', fontSize: '13px', textDecoration: 'none' }}>
+          ← Back to Dashboard
+        </Link>
+
+        <h1 style={{ fontSize: '32px', fontWeight: 900, marginTop: '12px', marginBottom: '6px' }}>
+          🧪 RedBox Sandbox — Live Attack Lab
+        </h1>
+        <p style={{ color: '#94a3b8', marginBottom: '14px' }}>
+          Safe demonstration environment — all attacks contained
+        </p>
+
+        <div style={{ background: '#1a0a0a', border: '1px solid #7f1d1d', color: '#fecaca', borderRadius: '10px', padding: '12px 14px', fontSize: '12px', marginBottom: '18px' }}>
+          This sandbox uses intentionally vulnerable endpoints built into RedBox for demonstration purposes only.
+          No external systems are harmed.
         </div>
 
-        {/* Warning banner */}
-        <div style={{
-          background: '#1a0a0a',
-          border: '1px solid #7f1d1d',
-          borderRadius: '8px',
-          padding: '12px 16px',
-          marginBottom: '24px',
-          fontSize: '12px',
-          color: '#fca5a5',
-        }}>
-          ⚠️ Educational purposes only. These demos simulate real attack techniques in a completely isolated environment with no network requests to real targets.
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '16px' }}>
+          {tabs.map((tab) => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              style={{
+                borderRadius: '999px',
+                border: `1px solid ${activeTab === tab ? '#e63946' : '#30303f'}`,
+                background: activeTab === tab ? '#e6394618' : '#0c0c16',
+                color: activeTab === tab ? '#fca5a5' : '#94a3b8',
+                padding: '8px 14px',
+                fontSize: '12px',
+                fontWeight: 700,
+                cursor: 'pointer',
+              }}
+            >
+              {tab}
+            </button>
+          ))}
         </div>
 
-        {/* 5 Demo Sections */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-          <SQLInjectionDemo />
-          <XSSDemo />
-          <AuthBypassDemo />
-          <RansomwareDemo />
+        {activeTab === 'SQL Injection' && (
+          <Section>
+            <h2 style={{ margin: 0, fontSize: '16px' }}>SQL Injection</h2>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginTop: '10px' }}>
+              <div>
+                <div style={{ color: '#9ca3af', fontSize: '12px', marginBottom: '8px' }}>Fake login form</div>
+                <input value={sqlUser} onChange={(e) => setSqlUser(e.target.value)} style={{ width: '100%', marginBottom: '8px', background: '#15152a', border: '1px solid #303046', borderRadius: '8px', padding: '10px', color: '#fff' }} />
+                <input value={sqlPass} onChange={(e) => setSqlPass(e.target.value)} style={{ width: '100%', marginBottom: '8px', background: '#15152a', border: '1px solid #303046', borderRadius: '8px', padding: '10px', color: '#fff' }} />
+                <button onClick={runSqlDemo} style={{ background: '#e63946', color: '#fff', border: 'none', borderRadius: '8px', padding: '10px 14px', fontWeight: 700, cursor: 'pointer' }}>
+                  Login
+                </button>
+              </div>
+              <div style={terminalStyle}>
+                {sqlLines.length === 0 ? 'Terminal waiting for injection attempt...' : sqlLines.map((line, i) => <div key={i}>{line}</div>)}
+              </div>
+            </div>
 
-          {/* Section 5 — What This Means */}
-          <div style={{ background: '#0f0f1a', border: '1px solid #1e1e3a', borderRadius: '12px', padding: '20px' }}>
-            <h2 style={{ color: '#fff', fontSize: '16px', fontWeight: '700', marginBottom: '12px' }}>
-              💡 Real-World Impact Summary
-            </h2>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px' }}>
-              {[
-                { attack: 'SQL Injection', impact: 'Full DB dump in 0.3s', cost: '$1.2M avg breach', color: '#ef4444' },
-                { attack: 'XSS (Stored)', impact: 'Persistent all-user compromise', cost: '$800K avg breach', color: '#f97316' },
-                { attack: 'Auth Bypass', impact: 'Instant admin access', cost: '$2.3M avg breach', color: '#7c3aed' },
-                { attack: 'Ransomware', impact: 'Full business shutdown', cost: '$4.5M avg demand', color: '#991b1b' },
-              ].map(({ attack, impact, cost, color }) => (
-                <div key={attack} style={{ background: '#1a1a2e', borderRadius: '8px', padding: '12px', borderLeft: `3px solid ${color}` }}>
-                  <div style={{ color, fontWeight: '700', marginBottom: '4px', fontSize: '13px' }}>{attack}</div>
-                  <div style={{ color: '#e5e5e5', fontSize: '12px', marginBottom: '2px' }}>{impact}</div>
-                  <div style={{ color: '#6b7280', fontSize: '11px' }}>{cost}</div>
+            <div style={{ marginTop: '12px', background: '#090d18', border: '1px solid #1f2a40', borderRadius: '8px', padding: '10px', fontSize: '12px' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', color: '#d4d4d8' }}>
+                <thead>
+                  <tr style={{ color: '#94a3b8' }}>
+                    <th style={{ textAlign: 'left' }}>ID</th><th style={{ textAlign: 'left' }}>Email</th><th style={{ textAlign: 'left' }}>Role</th><th style={{ textAlign: 'left' }}>Data</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr><td>1</td><td>ceo@company.com</td><td>admin</td><td>$2B revenue</td></tr>
+                  <tr><td>2</td><td>cto@company.com</td><td>admin</td><td>AWS keys</td></tr>
+                  <tr><td>3</td><td>...</td><td>...</td><td>... +147,997 more</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <FixCard text="Use parameterized queries: db.query('SELECT * FROM users WHERE username=$1', [username])" />
+          </Section>
+        )}
+
+        {activeTab === 'XSS Attack' && (
+          <Section>
+            <h2 style={{ margin: 0, fontSize: '16px' }}>XSS Attack</h2>
+            <p style={{ color: '#94a3b8', fontSize: '12px' }}>Fake blog comment input:</p>
+            <textarea value={xssPayload} onChange={(e) => setXssPayload(e.target.value)} rows={3} style={{ width: '100%', background: '#15152a', border: '1px solid #303046', borderRadius: '8px', padding: '10px', color: '#fff' }} />
+            <button onClick={runXssDemo} style={{ marginTop: '10px', background: '#fb923c', color: '#111', border: 'none', borderRadius: '8px', padding: '10px 14px', fontWeight: 700, cursor: 'pointer' }}>
+              Submit Comment
+            </button>
+
+            <div style={terminalStyle}>
+              {xssLines.length === 0 ? 'Terminal waiting for stored XSS simulation...' : xssLines.map((line, i) => <div key={i}>{line}</div>)}
+            </div>
+
+            {xssAlert && (
+              <div style={{ marginTop: '12px', background: '#2a0a0a', border: '1px solid #ef4444', borderRadius: '8px', padding: '10px', color: '#fecaca', fontSize: '12px' }}>
+                ⚠ XSS Alert: document.cookie = 'session=ADMIN_TOKEN'
+              </div>
+            )}
+            <FixCard text="Sanitize all inputs: htmlspecialchars($input)" />
+          </Section>
+        )}
+
+        {activeTab === 'Auth Bypass' && (
+          <Section>
+            <h2 style={{ margin: 0, fontSize: '16px' }}>Auth Bypass</h2>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginTop: '10px' }}>
+              <input value={authUser} onChange={(e) => setAuthUser(e.target.value)} placeholder="Username" style={{ background: '#15152a', border: '1px solid #303046', borderRadius: '8px', padding: '10px', color: '#fff' }} />
+              <input value={authPass} onChange={(e) => setAuthPass(e.target.value)} placeholder="Password" style={{ background: '#15152a', border: '1px solid #303046', borderRadius: '8px', padding: '10px', color: '#fff' }} />
+            </div>
+
+            <div style={{ marginTop: '10px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ fontSize: '12px', color: '#94a3b8' }}>Algorithm:</span>
+              <select value={jwtAlg} onChange={(e) => setJwtAlg(e.target.value)} style={{ background: '#15152a', border: '1px solid #303046', borderRadius: '8px', padding: '8px 10px', color: '#fff' }}>
+                <option value="HS256">HS256</option>
+                <option value="none">none</option>
+              </select>
+              <button onClick={runAuthDemo} style={{ background: '#a855f7', color: '#fff', border: 'none', borderRadius: '8px', padding: '9px 14px', fontWeight: 700, cursor: 'pointer' }}>
+                Login
+              </button>
+            </div>
+
+            <div style={terminalStyle}>
+              {authLines.length === 0 ? 'Terminal waiting for auth bypass simulation...' : authLines.map((line, i) => <div key={i}>{line}</div>)}
+            </div>
+            <FixCard text="Always validate passwords, never use alg:none" />
+          </Section>
+        )}
+
+        {activeTab === 'Ransomware' && (
+          <Section>
+            <h2 style={{ margin: 0, fontSize: '16px' }}>Ransomware Simulation</h2>
+            <div style={{ marginTop: '10px', background: '#0a0f1c', border: '1px solid #1f2a40', borderRadius: '8px', padding: '10px', fontSize: '12px' }}>
+              {files.map((path) => (
+                <div key={path} style={{ color: encryptedPaths.includes(path) ? '#ef4444' : '#86efac', marginBottom: '6px' }}>
+                  {encryptedPaths.includes(path) ? '🔒' : '📁'} {path}
                 </div>
               ))}
             </div>
-            <div style={{ marginTop: '16px', textAlign: 'center' }}>
-              <Link
-                href="/"
-                style={{
-                  display: 'inline-block',
-                  background: '#e63946',
-                  color: '#fff',
-                  textDecoration: 'none',
-                  padding: '10px 24px',
-                  borderRadius: '8px',
-                  fontWeight: '700',
-                  fontSize: '13px',
-                  letterSpacing: '1px',
-                }}
-              >
-                Run Full Attack Simulation →
-              </Link>
+
+            <div style={{ display: 'flex', gap: '8px', marginTop: '10px' }}>
+              <button onClick={startRansomDemo} disabled={ransomRunning} style={{ background: '#b91c1c', color: '#fff', border: 'none', borderRadius: '8px', padding: '10px 14px', fontWeight: 700, cursor: 'pointer', opacity: ransomRunning ? 0.6 : 1 }}>
+                Simulate Ransomware
+              </button>
+              <button onClick={decryptDemo} style={{ background: 'transparent', color: '#86efac', border: '1px solid #166534', borderRadius: '8px', padding: '10px 14px', fontWeight: 700, cursor: 'pointer' }}>
+                Decrypt (Demo)
+              </button>
             </div>
-          </div>
-        </div>
+
+            {(ransomRunning || ransomDone) && (
+              <div style={{ marginTop: '14px', background: '#2a0a0a', border: '1px solid #7f1d1d', borderRadius: '8px', padding: '10px' }}>
+                <div style={{ color: '#fca5a5', fontWeight: 700, marginBottom: '8px' }}>🔒 ENCRYPTION IN PROGRESS</div>
+                <div style={{ background: '#111827', borderRadius: '999px', height: '10px', overflow: 'hidden' }}>
+                  <div style={{ width: `${ransomProgress}%`, height: '100%', background: '#ef4444', transition: 'width 0.2s linear' }} />
+                </div>
+                <div style={{ marginTop: '6px', fontSize: '12px', color: '#fecaca' }}>{ransomProgress}%</div>
+              </div>
+            )}
+
+            {ransomDone && (
+              <div style={{ marginTop: '12px', color: '#fecaca', fontSize: '13px', lineHeight: '1.7' }}>
+                ALL 148,000 RECORDS ENCRYPTED<br />
+                Ransom: $450,000 in Bitcoin<br />
+                Deadline: 72 hours
+              </div>
+            )}
+            <FixCard text="Patch vulnerabilities before ransomware finds them" />
+          </Section>
+        )}
+
+        {activeTab === 'Verify Your Domain' && (
+          <Section>
+            <h2 style={{ margin: 0, fontSize: '16px' }}>Verify ownership to enable full sandbox testing</h2>
+            <p style={{ color: '#94a3b8', fontSize: '12px' }}>Choose one method to prove you own this domain.</p>
+
+            <div style={{ display: 'grid', gap: '10px' }}>
+              <div style={{ border: '1px solid #2d2d42', borderRadius: '8px', padding: '10px' }}>
+                <div style={{ fontWeight: 700, marginBottom: '6px' }}>METHOD 1 — DNS Verification</div>
+                <input value={verifyDomain} onChange={(e) => setVerifyDomain(e.target.value)} placeholder="Enter your domain" style={{ width: '100%', background: '#15152a', border: '1px solid #303046', borderRadius: '8px', padding: '9px', color: '#fff', marginBottom: '8px' }} />
+                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                  <button onClick={generateDnsToken} style={{ background: '#1d4ed8', color: '#fff', border: 'none', borderRadius: '8px', padding: '8px 12px', fontWeight: 700, cursor: 'pointer' }}>Generate TXT Record</button>
+                  <button onClick={() => markVerified('DNS TXT')} style={{ background: 'transparent', color: '#22c55e', border: '1px solid #166534', borderRadius: '8px', padding: '8px 12px', fontWeight: 700, cursor: 'pointer' }}>Check Verification</button>
+                </div>
+                {dnsToken && <div style={{ marginTop: '8px', fontSize: '12px', color: '#93c5fd' }}>Add this TXT record to your DNS: {dnsToken}</div>}
+              </div>
+
+              <div style={{ border: '1px solid #2d2d42', borderRadius: '8px', padding: '10px' }}>
+                <div style={{ fontWeight: 700, marginBottom: '6px' }}>METHOD 2 — HTTP File</div>
+                <div style={{ color: '#94a3b8', fontSize: '12px', marginBottom: '8px' }}>Download this file and place at /.well-known/redbox.txt</div>
+                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                  <button onClick={() => setVerifyLogs((prev) => [...prev.slice(-6), 'verification.txt downloaded (demo)'])} style={{ background: '#0f766e', color: '#fff', border: 'none', borderRadius: '8px', padding: '8px 12px', fontWeight: 700, cursor: 'pointer' }}>Download verification.txt</button>
+                  <button onClick={() => markVerified('HTTP file')} style={{ background: 'transparent', color: '#22c55e', border: '1px solid #166534', borderRadius: '8px', padding: '8px 12px', fontWeight: 700, cursor: 'pointer' }}>Check URL</button>
+                </div>
+              </div>
+
+              <div style={{ border: '1px solid #2d2d42', borderRadius: '8px', padding: '10px' }}>
+                <div style={{ fontWeight: 700, marginBottom: '6px' }}>METHOD 3 — GitHub OAuth</div>
+                <div style={{ color: '#94a3b8', fontSize: '12px', marginBottom: '8px' }}>Connect your GitHub to verify repo ownership.</div>
+                <button onClick={() => markVerified('GitHub OAuth')} style={{ background: '#111827', color: '#fff', border: '1px solid #374151', borderRadius: '8px', padding: '8px 12px', fontWeight: 700, cursor: 'pointer' }}>Connect GitHub</button>
+              </div>
+            </div>
+
+            {verified && (
+              <div style={{ marginTop: '12px', background: '#052e16', border: '1px solid #166534', borderRadius: '8px', padding: '10px', color: '#86efac', fontSize: '13px' }}>
+                ✓ DOMAIN VERIFIED — Full attack simulation enabled
+                <div style={{ marginTop: '8px' }}>
+                  <button onClick={runFullSandboxTest} style={{ background: '#22c55e', color: '#052e16', border: 'none', borderRadius: '8px', padding: '8px 12px', fontWeight: 700, cursor: 'pointer' }}>
+                    Run Full Sandbox Test
+                  </button>
+                </div>
+              </div>
+            )}
+
+            <div style={terminalStyle}>
+              {verifyLogs.length === 0 ? 'Verification logs will appear here...' : verifyLogs.map((line, i) => <div key={i}>{line}</div>)}
+            </div>
+          </Section>
+        )}
       </div>
     </main>
   );
