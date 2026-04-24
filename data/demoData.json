@@ -1,0 +1,67 @@
+{
+  "target": "demo",
+  "vulnerabilities": [
+    {
+      "id": "weak-auth",
+      "title": "Weak Authentication Flow",
+      "severity": "critical",
+      "impact": "Account takeover and admin compromise",
+      "fix": "Enforce MFA and lockout policy"
+    },
+    {
+      "id": "sqli-risk",
+      "title": "SQL Injection Risk Pattern",
+      "severity": "critical",
+      "impact": "Database read/write compromise",
+      "fix": "Use parameterized queries and strict validation"
+    },
+    {
+      "id": "missing-security-headers",
+      "title": "Missing Security Headers",
+      "severity": "medium",
+      "impact": "Increased XSS and clickjacking risk",
+      "fix": "Add CSP, X-Frame-Options, and HSTS"
+    },
+    {
+      "id": "exposed-api-key",
+      "title": "API Key Exposure Pattern",
+      "severity": "medium",
+      "impact": "Unauthorized API usage and data abuse",
+      "fix": "Move secrets to server-side env and rotate keys"
+    },
+    {
+      "id": "weak-session",
+      "title": "Session Token Reuse",
+      "severity": "medium",
+      "impact": "Session hijacking risk",
+      "fix": "Rotate tokens on privilege change"
+    }
+  ],
+  "simulation": {
+    "steps": [
+      { "phase": "Recon", "text": "Scanning target surface and endpoint map...", "level": "info" },
+      { "phase": "Exploit", "text": "Simulated SQL injection path identified in auth flow.", "level": "critical" },
+      { "phase": "Access", "text": "Simulated auth bypass grants admin session token.", "level": "critical" },
+      { "phase": "Escalation", "text": "Privilege escalation reaches sensitive database tables.", "level": "high" },
+      { "phase": "Impact", "text": "Data exfiltration path possible in under 18 minutes.", "level": "critical" }
+    ],
+    "explanation": "Demo chain shows realistic compromise from weak auth + SQLi signals."
+  },
+  "report": {
+    "executiveSummary": "Demo startup is exposed to high-risk account and data compromise vectors.",
+    "riskScore": 78,
+    "riskLevel": "Critical",
+    "criticalFindings": [
+      "Weak Authentication Flow: Account takeover and admin compromise",
+      "SQL Injection Risk Pattern: Database read/write compromise"
+    ],
+    "actions": [
+      "Enforce MFA and lockout policy",
+      "Use parameterized queries and strict validation",
+      "Add CSP, X-Frame-Options, and HSTS"
+    ],
+    "estimatedBreachCost": "$2,300,000",
+    "timeToBreach": "12 min",
+    "recordsExposed": 148000
+  }
+}
